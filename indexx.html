@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrousel 3D</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #000;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: #222;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 10;
+    }
+
+    header .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Navbar */
+    .navbar-nav {
+      margin-left: auto;
+    }
+
+    /* Navbar mobile */
+    .navbar-collapse {
+      justify-content: flex-end;
+    }
+
+    .navbar-toggler {
+      border: none;
+    }
+
+    /* Banner and other styles */
+    .banner {
+      width: 100%;
+      height: calc(100vh - 80px); /* Ajusté pour laisser de la place pour le header */
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      margin-top: 80px; /* Pour éviter que le carrousel soit caché sous le header */
+      flex: 1;
+    }
+
+    .slider {
+      width: 200px;
+      height: 300px;
+      position: absolute;
+      top: 20%;
+      left: calc(50% - 100px);
+      transform-style: preserve-3d;
+      transform: perspective(1000px);
+      animation: autorun 20s linear infinite;
+      transition: transform 0.3s ease;
+    }
+
+    .slider:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes autorun {
+      from {
+        transform: perspective(1000px) rotateX(-20deg) rotateY(0deg);
+      }
+      to {
+        transform: perspective(1000px) rotateX(-20deg) rotateY(360deg);
+      }
+    }
+
+    .item {
+      position: absolute;
+      inset: 0;
+      transform: rotateY(calc((var(--position) - 1) * (360 / 5) * 1deg)) translateZ(350px);
+      transition: transform 0.5s ease;
+      border: 5px solid transparent;
+      border-radius: 10px;
+      box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.8); /* Bordure dorée lumineuse */
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    footer {
+      background-color: #22222200;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      position: relative; /* Position normale pour éviter de cacher le contenu */
+      z-index: 10;
+      margin-top: auto; /* Pour que le footer soit collé en bas */
+    }
+
+    /* Modal en plein écran et centré */
+    .modal {
+      display: none; /* Masqué par défaut */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+.bg-dark {
+    --bs-bg-opacity: 1;
+    background-color: rgb(33 37 41 / 0%) !important;
+}
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 800px;
+      text-align: center;
+    }
+
+    .modal .close {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 50%;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    .modal-footer {
+      text-align: center;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 768px) {
+      .slider {
+        width: 100%;
+        left: 0;
+        top: 10%;
+      }
+
+      .item {
+        width: 90%;
+        height: auto;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+ <div class="container">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Dropdown
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="#">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Banner (Carrousel) -->
+  <div class="banner">
+    <div class="slider" style="--quantity: 5">
+      <div class="item" style="--position: 1; --card-size: 300px;" onclick="openModal('Image 1')">
+        <img src="https://i.pinimg.com/originals/83/09/68/83096822815bf2eb92a0f4b4a8b17599.jpg" alt="">
+      </div>
+      <div class="item" style="--position: 2; --card-size: 350px;" onclick="openModal('Image 2')">
+        <img src="https://w0.peakpx.com/wallpaper/940/218/HD-wallpaper-dragonballs-vegito-1-dragonball-super-ssgss-blue-dragon-ball-super-god.jpg" alt="">
+      </div>
+      <div class="item" style="--position: 3; --card-size: 400px;" onclick="openModal('Image 3')">
+        <img src="https://wallpapers.com/images/hd/dragon-ball-super-iphone-wxdm7m6d3ouquxmi.jpg" alt="">
+      </div>
+      <div class="item" style="--position: 4; --card-size: 250px;" onclick="openModal('Image 4')">
+        <img src="https://i.pinimg.com/736x/aa/5f/65/aa5f655456d1d9edff30b28636578511.jpg" alt="">
+      </div>
+      <div class="item" style="--position: 5; --card-size: 300px;" onclick="openModal('Image 5')">
+        <img src="https://i.pinimg.com/originals/8a/e8/fa/8ae8faa9f0fdf58c39e47752b89d7e26.jpg" alt="">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Image en grand</h2>
+      <p id="modalText"></p>
+      <div class="modal-footer">
+        <button class="btn btn-danger" onclick="closeModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+</div>  
+<footer>
+    <p>&copy; 2024 Carrousel 3D | Tous droits réservés</p>
+  </footer>
+  <!-- Bootstrap JS & Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    function openModal(imageName) {
+      document.getElementById('modal').style.display = 'flex';
+      document.getElementById('modalText').textContent = 'Vous avez cliqué sur ' + imageName;
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    // Fonction pour ajuster la taille des cartes aléatoirement entre 10% et 100%
+    document.querySelectorAll('.item').forEach(item => {
+      const randomSize = Math.random() * (100 - 10) + 10; // Taille entre 10 et 100
+      const cardSize = parseFloat(getComputedStyle(item).getPropertyValue('--card-size'));
+      const newSize = (cardSize * randomSize) / 100;
+      item.style.width = newSize + 'px';
+      item.style.height = newSize + 'px';
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixelisation et Flou avec Sélection</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      display: block;
+      margin: 0 auto;
+    }
+    #info {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .hover-avatar {
+      position: absolute;
+      display: none;
+      width: 50px;
+      height: 50px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Pixelisation, Flou et Sélection en Haute Qualité</h2>
+  <canvas id="canvas"></canvas>
+  <div id="info">Pixels sélectionnés : 0</div>
+  <img id="avatar" class="hover-avatar" src="img/mom.jpg" alt="Avatar">
+
+  <script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const info = document.getElementById('info');
+  const avatar = document.getElementById('avatar');
+
+  let img = null;
+  let isSelecting = false;
+  let startX, startY, endX, endY;
+
+  // Stocker les rectangles sélectionnés
+  let selectedRectangles = [];
+
+  // Charger l'image principale dans le canvas au chargement de la page
+  window.onload = () => {
+    img = new Image();  
+    img.crossOrigin = "anonymous";  // Add this line to enable cross-origin
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      applyPixelation();  // Appliquer la pixelisation
+      applyBlur(); // Appliquer le flou
+    };
+// Ici, on utilise un chemin d'image local ou accessible depuis le même domaine
+    img.src = 'https://t4.ftcdn.net/jpg/00/91/39/69/360_F_91396970_PYJGXCFMQJmOU45QxAHJUAptnftYjFCy.jpg';  // Remplacez ce chemin par le chemin réel de votre image
+ 
+   };
+
+  // Début de la sélection
+  canvas.addEventListener('mousedown', (e) => {
+    isSelecting = true;
+    startX = e.offsetX;
+    startY = e.offsetY;
+  });
+
+  // Fin de la sélection
+  canvas.addEventListener('mouseup', (e) => {
+    if (!isSelecting) return;
+    isSelecting = false;
+    endX = e.offsetX;
+    endY = e.offsetY;
+
+    restoreSelection();
+    highlightSelection();
+    countSelectedPixels();
+  });
+
+  // Appliquer un effet de pixelisation (ou flou) sur le canvas
+  function applyPixelation() {
+    const pixelSize = 10; // Changez cette valeur pour plus ou moins de pixelisation
+    const width = canvas.width;
+    const height = canvas.height;
+
+    for (let y = 0; y < height; y += pixelSize) {
+      for (let x = 0; x < width; x += pixelSize) {
+        const imageData = ctx.getImageData(x, y, pixelSize, pixelSize);
+        const data = imageData.data;
+        let r = 0, g = 0, b = 0, count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          count++;
+        }
+        r = Math.floor(r / count);
+        g = Math.floor(g / count);
+        b = Math.floor(b / count);
+
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fillRect(x, y, pixelSize, pixelSize);
+      }
+    }
+  }
+
+  // Appliquer un effet de flou
+  function applyBlur() {
+    ctx.filter = 'blur(5px)'; // Applique un flou de 5px (ajuste la valeur pour plus ou moins de flou)
+    ctx.drawImage(img, 0, 0);
+    ctx.filter = 'none'; // Réinitialiser le filtre pour les autres opérations
+  }
+
+  // Restaurer la sélection à partir de l'image originale sans pixelisation ni flou
+  function restoreSelection() {
+    const rectX = Math.min(startX, endX);
+    const rectY = Math.min(startY, endY);
+    const rectWidth = Math.abs(endX - startX);
+    const rectHeight = Math.abs(endY - startY);
+
+    ctx.drawImage(img, rectX, rectY, rectWidth, rectHeight, rectX, rectY, rectWidth, rectHeight);
+  }
+
+  // Dessiner le rectangle de sélection
+  function highlightSelection() {
+    const rectX = Math.min(startX, endX);
+    const rectY = Math.min(startY, endY);
+    const rectWidth = Math.abs(endX - startX);
+    const rectHeight = Math.abs(endY - startY);
+
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+
+    selectedRectangles.push({ rectX, rectY, rectWidth, rectHeight });
+  }
+
+  // Écouteur pour le hover
+  canvas.addEventListener('mousemove', (e) => {
+    let hovering = false;
+
+    for (const rect of selectedRectangles) {
+      if (
+        e.offsetX >= rect.rectX &&
+        e.offsetX <= rect.rectX + rect.rectWidth &&
+        e.offsetY >= rect.rectY &&
+        e.offsetY <= rect.rectY + rect.rectHeight
+      ) {
+        avatar.style.left = `${rect.rectX + canvas.offsetLeft + rect.rectWidth - 50}px`;
+        avatar.style.top = `${rect.rectY + canvas.offsetTop}px`;
+        avatar.style.display = 'block';
+        hovering = true;
+        break;
+      }
+    }
+
+    if (!hovering) {
+      avatar.style.display = 'none';
+    }
+  });
+
+  // Compter les pixels sélectionnés
+  function countSelectedPixels() {
+    const rectX = Math.min(startX, endX);
+    const rectY = Math.min(startY, endY);
+    const rectWidth = Math.abs(endX - startX);
+    const rectHeight = Math.abs(endY - startY);
+
+    const imageData = ctx.getImageData(rectX, rectY, rectWidth, rectHeight);
+    let pixelCount = 0;
+
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      if (imageData.data[i + 3] > 0) {
+        pixelCount++;
+      }
+    }
+
+    info.textContent = `Pixels sélectionnés : ${pixelCount}`;
+  }
+</script>
+
+</body>
+</html>

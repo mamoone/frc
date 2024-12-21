@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FamilyRaceCoin</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+ 
+
+    body {
+
+      min-height: 100vh;
+      background-color: #000;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: #222;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 10;
+    }
+
+    header .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Navbar */
+    .navbar-nav {
+      margin-left: auto;
+    }
+
+    /* Navbar mobile */
+    .navbar-collapse {
+      justify-content: flex-end;
+    }
+
+    .navbar-toggler {
+      border: none;
+    }
+
+    /* Banner and other styles */
+    .banner {
+      width: 100%;
+      height: calc(100vh - 80px); /* Ajusté pour laisser de la place pour le header */
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      margin-top: 80px; /* Pour éviter que le carrousel soit caché sous le header */
+      flex: 1;
+    }
+
+    .slider {
+      width: 200px;
+      height: 300px;
+      position: absolute;
+      top: 20%;
+      left: calc(50% - 100px);
+      transform-style: preserve-3d;
+      transform: perspective(1000px);
+      animation: autorun 20s linear infinite;
+      transition: transform 0.3s ease;
+    }
+
+    .slider:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes autorun {
+      from {
+        transform: perspective(1000px) rotateX(-20deg) rotateY(0deg);
+      }
+      to {
+        transform: perspective(1000px) rotateX(-20deg) rotateY(360deg);
+      }
+    }
+
+    .item {
+      position: absolute;
+      inset: 0;
+      transform: rotateY(calc((var(--position) - 1) * (360 / 5) * 1deg)) translateZ(350px);
+      transition: transform 0.5s ease;
+      border: 5px solid transparent;
+      border-radius: 10px;
+      box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.8); /* Bordure dorée lumineuse */
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    footer {
+      background-color: #22222200;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      position: relative; /* Position normale pour éviter de cacher le contenu */
+      z-index: 10;
+      margin-top: auto; /* Pour que le footer soit collé en bas */
+    }
+
+    /* Modal en plein écran et centré */
+    .modal {
+      display: none; /* Masqué par défaut */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+.bg-dark {
+    --bs-bg-opacity: 1;
+    background-color: rgb(33 37 41 / 0%) !important;
+}
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 800px;
+      text-align: center;
+    }
+
+    .modal .close {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 50%;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    .modal-footer {
+      text-align: center;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 768px) {
+      .slider {
+        width: 100%;
+        left: 0;
+        top: 10%;
+      }
+
+      .item {
+        width: 90%;
+        height: auto;
+        margin: 0 auto;
+      }
+    }
+    canvas {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      display: block;
+      margin: 0 auto;
+    }
+    #info {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .hover-avatar {
+      position: absolute;
+      display: none;
+      width: 50px;
+      height: 50px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+ <div class="container">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">FamilyRaceCoin</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">About</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            WhitePaper
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="#">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" tabindex="-1" aria-disabled="true">Contact</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <button class="btn btn-outline-success" type="submit">Connection</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<style>
+     .item .badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: red;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .item .badge-bottom-center {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: blue;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 5px 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+</style>
+ <div class="row justify-content-center">
+    <div class="col-9">
+      <!-- Banner (Carrousel) -->
+  <div class="banner">
+    <div class="slider" style="--quantity: 5">
+      <div class="item" style="--position: 1; --card-size: 300px;" onclick="openModal('Image 1')">
+        <img src="img/coin/1.jpg" alt="">
+        <div class="badge">98% FRC available</div>
+        <div class="badge-bottom-center">Sister</div>
+      </div>
+      <div class="item" style="--position: 2; --card-size: 350px;" onclick="openModal('Image 2')">
+        <img src="img/coin/2.jpg" alt="">
+        <div class="badge">8% FRC available</div>
+        <div class="badge-bottom-center">Dog</div>
+      </div>
+      <div class="item" style="--position: 3; --card-size: 400px;" onclick="openModal('Image 3')">
+        <img src="img/coin/3.jpg" alt="">
+        <div class="badge">38% FRC available</div>
+        <div class="badge-bottom-center">Father</div>
+      </div>
+      <div class="item" style="--position: 4; --card-size: 250px;" onclick="openModal('Image 4')">
+        <img src="img/coin/4.jpg" alt="">
+        <div class="badge">59% FRC available</div>
+        <div class="badge-bottom-center">Brother</div>
+      </div>
+      <div class="item" style="--position: 5; --card-size: 300px;" onclick="openModal('Image 5')">
+        <img src="img/coin/5.jpg" alt="">
+        <div class="badge">2% FRC available</div>
+        <div class="badge-bottom-center">Mother</div>
+      </div>
+    </div>
+  </div>
+    </div>
+    <div class="col-3 mt-5">
+      <h6 class="text-white p-3">Last Transaction:</h6>
+        <ul class="list-group bg-dark">
+    <!-- Transaction 1 -->
+    <li class="bg-dark text-white p-3 list-group-item d-flex align-items-center">
+      <img src="img/coin/1.jpg" alt="Avatar 1" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+      <div class="flex-grow-1">
+        <h6 class="mb-0">John Doe</h6>
+        <small class="text-muted">Achat de 50 crédits</small>
+      </div>
+      <small class="text-secondary">21 Déc 2024</small>
+    </li>
+
+    <!-- Transaction 2 -->
+    <li class="bg-dark text-white p-3 list-group-item d-flex align-items-center">
+      <img src="img/coin/2.jpg" alt="Avatar 2" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+      <div class="flex-grow-1">
+        <h6 class="mb-0">Jane Smith</h6>
+        <small class="text-muted">Vente de 30 crédits</small>
+      </div>
+      <small class="text-secondary">20 Déc 2024</small>
+    </li>
+
+    <!-- Transaction 3 -->
+    <li class="bg-dark text-white p-3 list-group-item d-flex align-items-center">
+      <img src="img/coin/3.jpg" alt="Avatar 3" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+      <div class="flex-grow-1">
+        <h6 class="mb-0">Ahmed Ali</h6>
+        <small class="text-muted">Achat de 70 crédits</small>
+      </div>
+      <small class="text-secondary">19 Déc 2024</small>
+    </li>
+  </ul>
+    </div>
+  </div>
+
+  
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Image en grand</h2>
+
+  <canvas id="canvas"></canvas>
+  <div id="info">Coin sélectionnés : 0</div>
+  <img id="avatar" class="hover-avatar" src="img/mom.jpg" alt="Avatar">
+
+  <script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const info = document.getElementById('info');
+  const avatar = document.getElementById('avatar');
+
+  let img = null;
+  let isSelecting = false;
+  let startX, startY, endX, endY;
+
+  // Stocker les rectangles sélectionnés
+  let selectedRectangles = [];
+
+  // Charger l'image principale dans le canvas au chargement de la page
+  window.onload = () => {
+    img = new Image();  
+    img.crossOrigin = "anonymous";  // Add this line to enable cross-origin
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      applyPixelation();  // Appliquer la pixelisation
+      applyBlur(); // Appliquer le flou
+    };
+// Ici, on utilise un chemin d'image local ou accessible depuis le même domaine
+    img.src = 'https://t4.ftcdn.net/jpg/00/91/39/69/360_F_91396970_PYJGXCFMQJmOU45QxAHJUAptnftYjFCy.jpg';  // Remplacez ce chemin par le chemin réel de votre image
+ 
+   };
+
+  // Début de la sélection
+  canvas.addEventListener('mousedown', (e) => {
+    isSelecting = true;
+    startX = e.offsetX;
+    startY = e.offsetY;
+  });
+
+  // Fin de la sélection
+  canvas.addEventListener('mouseup', (e) => {
+    if (!isSelecting) return;
+    isSelecting = false;
+    endX = e.offsetX;
+    endY = e.offsetY;
+
+    restoreSelection();
+    highlightSelection();
+    countSelectedPixels();
+  });
+
+  // Appliquer un effet de pixelisation (ou flou) sur le canvas
+  function applyPixelation() {
+    const pixelSize = 10; // Changez cette valeur pour plus ou moins de pixelisation
+    const width = canvas.width;
+    const height = canvas.height;
+
+    for (let y = 0; y < height; y += pixelSize) {
+      for (let x = 0; x < width; x += pixelSize) {
+        const imageData = ctx.getImageData(x, y, pixelSize, pixelSize);
+        const data = imageData.data;
+        let r = 0, g = 0, b = 0, count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          count++;
+        }
+        r = Math.floor(r / count);
+        g = Math.floor(g / count);
+        b = Math.floor(b / count);
+
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.fillRect(x, y, pixelSize, pixelSize);
+      }
+    }
+  }
+
+  // Appliquer un effet de flou
+  function applyBlur() {
+    ctx.filter = 'blur(5px)'; // Applique un flou de 5px (ajuste la valeur pour plus ou moins de flou)
+    ctx.drawImage(img, 0, 0);
+    ctx.filter = 'none'; // Réinitialiser le filtre pour les autres opérations
+  }
+
+  // Restaurer la sélection à partir de l'image originale sans pixelisation ni flou
+  function restoreSelection() {
+    const rectX = Math.min(startX, endX);
+    const rectY = Math.min(startY, endY);
+    const rectWidth = Math.abs(endX - startX);
+    const rectHeight = Math.abs(endY - startY);
+
+    ctx.drawImage(img, rectX, rectY, rectWidth, rectHeight, rectX, rectY, rectWidth, rectHeight);
+  }
+
+  // Dessiner le rectangle de sélection
+  function highlightSelection() {
+    const rectX = Math.min(startX, endX);
+    const rectY = Math.min(startY, endY);
+    const rectWidth = Math.abs(endX - startX);
+    const rectHeight = Math.abs(endY - startY);
+
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+
+    selectedRectangles.push({ rectX, rectY, rectWidth, rectHeight });
+  }
+
+  // Écouteur pour le hover
+  canvas.addEventListener('mousemove', (e) => {
+    let hovering = false;
+
+    for (const rect of selectedRectangles) {
+      if (
+        e.offsetX >= rect.rectX &&
+        e.offsetX <= rect.rectX + rect.rectWidth &&
+        e.offsetY >= rect.rectY &&
+        e.offsetY <= rect.rectY + rect.rectHeight
+      ) {
+        avatar.style.left = `${rect.rectX + canvas.offsetLeft + rect.rectWidth - 50}px`;
+        avatar.style.top = `${rect.rectY + canvas.offsetTop}px`;
+        avatar.style.display = 'block';
+        hovering = true;
+        break;
+      }
+    }
+
+    if (!hovering) {
+      avatar.style.display = 'none';
+    }
+  });
+
+  // Compter les pixels sélectionnés
+  function countSelectedPixels() {
+    const rectX = Math.min(startX, endX);
+    const rectY = Math.min(startY, endY);
+    const rectWidth = Math.abs(endX - startX);
+    const rectHeight = Math.abs(endY - startY);
+
+    const imageData = ctx.getImageData(rectX, rectY, rectWidth, rectHeight);
+    let pixelCount = 0;
+
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      if (imageData.data[i + 3] > 0) {
+        pixelCount++;
+      }
+    }
+
+    info.textContent = `Pixels sélectionnés : ${pixelCount}`;
+  }
+</script>
+
+      <p id="modalText"></p>
+      <div class="modal-footer">
+        <button class="btn btn-danger" onclick="closeModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+
+</div>  
+<footer>
+    <p>&copy; 2024 FRC - FAMILY RACE COIN | Tous droits réservés</p>
+  </footer>
+  <!-- Bootstrap JS & Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    function openModal(imageName) {
+      document.getElementById('modal').style.display = 'flex';
+      document.getElementById('modalText').textContent = 'Vous avez cliqué sur ' + imageName;
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    // Fonction pour ajuster la taille des cartes aléatoirement entre 10% et 100%
+    document.querySelectorAll('.item').forEach(item => {
+      const randomSize = Math.random() * (100 - 30) + 30; // Taille entre 10 et 100
+      const cardSize = parseFloat(getComputedStyle(item).getPropertyValue('--card-size'));
+      const newSize = (cardSize * randomSize) / 100;
+      item.style.width = newSize + 'px';
+      item.style.height = newSize + 'px';
+    });
+  </script>
+
+</body>
+</html>

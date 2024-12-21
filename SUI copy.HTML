@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sélection de Pixels sur Canvas</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+    }
+    #info {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Sélection de Pixels sur Canvas</h2>
+  <input type="file" id="upload" accept="image/*">
+  <br><br>
+  <canvas id="canvas" width="500" height="500"></canvas>
+  <div id="info">Pixels sélectionnés : 0</div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const upload = document.getElementById('upload');
+    const info = document.getElementById('info');
+
+    let img = null;
+    let isSelecting = false;
+    let startX, startY, endX, endY;
+
+    // Charger l'image dans le canvas
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          img = new Image();
+          img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Début de la sélection
+    canvas.addEventListener('mousedown', (e) => {
+      isSelecting = true;
+      startX = e.offsetX;
+      startY = e.offsetY;
+    });
+
+    // Fin de la sélection
+    canvas.addEventListener('mouseup', (e) => {
+      if (!isSelecting) return;
+      isSelecting = false;
+      endX = e.offsetX;
+      endY = e.offsetY;
+
+      highlightSelection();
+      countSelectedPixels();
+    });
+
+    // Fonction pour dessiner le rectangle de sélection
+    function highlightSelection() {
+      const rectX = Math.min(startX, endX);
+      const rectY = Math.min(startY, endY);
+      const rectWidth = Math.abs(endX - startX);
+      const rectHeight = Math.abs(endY - startY);
+
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+    }
+
+    // Fonction pour compter les pixels sélectionnés
+    function countSelectedPixels() {
+      const rectX = Math.min(startX, endX);
+      const rectY = Math.min(startY, endY);
+      const rectWidth = Math.abs(endX - startX);
+      const rectHeight = Math.abs(endY - startY);
+
+      const imageData = ctx.getImageData(rectX, rectY, rectWidth, rectHeight);
+      let pixelCount = 0;
+
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        // Vérifie si le pixel n'est pas transparent (alpha != 0)
+        if (imageData.data[i + 3] > 0) {
+          pixelCount++;
+        }
+      }
+
+      info.textContent = `Pixels sélectionnés : ${pixelCount}`;
+    }
+  </script>
+
+</body>
+</html>

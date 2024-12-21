@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixelisation Inversée avec Avatar</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      display: block;
+      margin: 0 auto;
+    }
+    #info {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Pixelisation Inversée avec Avatar</h2>
+  <input type="file" id="upload" accept="image/*" title="Charger une image principale">
+  <br><br>
+  <input type="file" id="avatarUpload" accept="image/*" title="Charger un avatar">
+  <br><br>
+  <canvas id="canvas"></canvas>
+  <div id="info">Pixels sélectionnés : 0</div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const upload = document.getElementById('upload');
+    const avatarUpload = document.getElementById('avatarUpload');
+    const info = document.getElementById('info');
+
+    let img = null;
+    let avatarImg = null;
+    let isSelecting = false;
+    let startX, startY, endX, endY;
+
+    // Charger l'image principale dans le canvas
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          img = new Image();
+          img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            pixelateCanvas();
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Charger l'avatar
+    avatarUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          avatarImg = new Image();
+          avatarImg.onload = () => {
+            console.log('Avatar chargé');
+          };
+          avatarImg.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Début de la sélection
+    canvas.addEventListener('mousedown', (e) => {
+      isSelecting = true;
+      startX = e.offsetX;
+      startY = e.offsetY;
+    });
+
+    // Fin de la sélection
+    canvas.addEventListener('mouseup', (e) => {
+      if (!isSelecting) return;
+      isSelecting = false;
+      endX = e.offsetX;
+      endY = e.offsetY;
+
+      restoreSelection();
+      highlightSelection();
+      countSelectedPixels();
+      drawAvatar();
+    });
+
+    // Pixeliser tout le canvas
+    function pixelateCanvas() {
+      const pixelSize = 10;
+
+      for (let y = 0; y < canvas.height; y += pixelSize) {
+        for (let x = 0; x < canvas.width; x += pixelSize) {
+          const imageData = ctx.getImageData(x, y, pixelSize, pixelSize);
+          const data = imageData.data;
+          let r = 0, g = 0, b = 0, count = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
+          }
+          r = Math.floor(r / count);
+          g = Math.floor(g / count);
+          b = Math.floor(b / count);
+
+          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+          ctx.fillRect(x, y, pixelSize, pixelSize);
+        }
+      }
+    }
+
+    // Restaurer la sélection à partir de l'image originale
+    function restoreSelection() {
+      const rectX = Math.min(startX, endX);
+      const rectY = Math.min(startY, endY);
+      const rectWidth = Math.abs(endX - startX);
+      const rectHeight = Math.abs(endY - startY);
+
+      ctx.drawImage(img, rectX, rectY, rectWidth, rectHeight, rectX, rectY, rectWidth, rectHeight);
+    }
+
+    // Dessiner le rectangle de sélection
+    function highlightSelection() {
+      const rectX = Math.min(startX, endX);
+      const rectY = Math.min(startY, endY);
+      const rectWidth = Math.abs(endX - startX);
+      const rectHeight = Math.abs(endY - startY);
+
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+    }
+
+    // Dessiner l'avatar en haut à droite du rectangle sélectionné
+    function drawAvatar() {
+      if (!avatarImg) return;
+
+      const rectX = Math.min(startX, endX);
+      const rectY = Math.min(startY, endY);
+
+      const avatarSize = 30; // Taille de l'avatar (30x30 pixels)
+      ctx.drawImage(avatarImg, rectX + Math.abs(endX - startX) - avatarSize, rectY, avatarSize, avatarSize);
+    }
+
+    // Compter les pixels sélectionnés
+    function countSelectedPixels() {
+      const rectX = Math.min(startX, endX);
+      const rectY = Math.min(startY, endY);
+      const rectWidth = Math.abs(endX - startX);
+      const rectHeight = Math.abs(endY - startY);
+
+      const imageData = ctx.getImageData(rectX, rectY, rectWidth, rectHeight);
+      let pixelCount = 0;
+
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        if (imageData.data[i + 3] > 0) {
+          pixelCount++;
+        }
+      }
+
+      info.textContent = `Pixels sélectionnés : ${pixelCount}`;
+    }
+  </script>
+
+</body>
+</html>
